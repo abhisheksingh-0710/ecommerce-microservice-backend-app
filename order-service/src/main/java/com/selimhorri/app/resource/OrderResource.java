@@ -26,71 +26,75 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class OrderResource {
-	
+
 	private final OrderService orderService;
-	
+
 	@GetMapping
 	public ResponseEntity<DtoCollectionResponse<OrderDto>> findAll() {
 		log.info("*** OrderDto List, controller; fetch all orders *");
 		return ResponseEntity.ok(new DtoCollectionResponse<>(this.orderService.findAll()));
 	}
-	
+
 	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderDto> findById(
-			@PathVariable("orderId") 
-			@NotBlank(message = "Input must not be blank") 
+			@PathVariable("orderId")
+			@NotBlank(message = "Input must not be blank")
 			@Valid final String orderId) {
 		log.info("*** OrderDto, resource; fetch order by id *");
 		return ResponseEntity.ok(this.orderService.findById(Integer.parseInt(orderId)));
 	}
-	
+
+	/**
+	 * Returns all orders matching the given lifecycle status.
+	 * Valid statuses: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+	 */
+	@GetMapping("/status/{status}")
+	public ResponseEntity<DtoCollectionResponse<OrderDto>> findByStatus(
+			@PathVariable("status")
+			@NotBlank(message = "Status must not be blank")
+			@Valid final String status) {
+		log.info("*** OrderDto List, resource; fetch orders by status: {} *", status);
+		return ResponseEntity.ok(new DtoCollectionResponse<>(
+				this.orderService.findAll().stream()
+						.filter(o -> status.equalsIgnoreCase(o.getOrderStatus()))
+						.toList()));
+	}
+
 	@PostMapping
 	public ResponseEntity<OrderDto> save(
-			@RequestBody 
-			@NotNull(message = "Input must not be NULL") 
+			@RequestBody
+			@NotNull(message = "Input must not be NULL")
 			@Valid final OrderDto orderDto) {
 		log.info("*** OrderDto, resource; save order *");
 		return ResponseEntity.ok(this.orderService.save(orderDto));
 	}
-	
+
 	@PutMapping
 	public ResponseEntity<OrderDto> update(
-			@RequestBody 
-			@NotNull(message = "Input must not be NULL") 
+			@RequestBody
+			@NotNull(message = "Input must not be NULL")
 			@Valid final OrderDto orderDto) {
 		log.info("*** OrderDto, resource; update order *");
 		return ResponseEntity.ok(this.orderService.update(orderDto));
 	}
-	
+
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderDto> update(
 			@PathVariable("orderId")
 			@NotBlank(message = "Input must not be blank")
 			@Valid final String orderId,
-			@RequestBody 
-			@NotNull(message = "Input must not be NULL") 
+			@RequestBody
+			@NotNull(message = "Input must not be NULL")
 			@Valid final OrderDto orderDto) {
 		log.info("*** OrderDto, resource; update order with orderId *");
 		return ResponseEntity.ok(this.orderService.update(Integer.parseInt(orderId), orderDto));
 	}
-	
+
 	@DeleteMapping("/{orderId}")
 	public ResponseEntity<Boolean> deleteById(@PathVariable("orderId") final String orderId) {
 		log.info("*** Boolean, resource; delete order by id *");
 		this.orderService.deleteById(Integer.parseInt(orderId));
 		return ResponseEntity.ok(true);
 	}
-	
-	
-	
+
 }
-
-
-
-
-
-
-
-
-
-
