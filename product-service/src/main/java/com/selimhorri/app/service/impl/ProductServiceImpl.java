@@ -41,6 +41,26 @@ public class ProductServiceImpl implements ProductService {
 				.map(ProductMappingHelper::map)
 				.orElseThrow(() -> new ProductNotFoundException(String.format("Product with id: %d not found", productId)));
 	}
+
+	@Override
+	public List<ProductDto> searchByTitle(final String title) {
+		log.info("*** ProductDto List, service; search products by title *");
+		return this.productRepository.findByProductTitleContainingIgnoreCase(title)
+				.stream()
+				.map(ProductMappingHelper::map)
+				.distinct()
+				.collect(Collectors.toUnmodifiableList());
+	}
+
+	@Override
+	public List<ProductDto> findDiscounted() {
+		log.info("*** ProductDto List, service; fetch all discounted products *");
+		return this.productRepository.findByDiscountPercentGreaterThan(0.0)
+				.stream()
+				.map(ProductMappingHelper::map)
+				.distinct()
+				.collect(Collectors.toUnmodifiableList());
+	}
 	
 	@Override
 	public ProductDto save(final ProductDto productDto) {
