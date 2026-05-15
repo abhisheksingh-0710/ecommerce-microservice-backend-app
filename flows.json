@@ -1,0 +1,361 @@
+{
+  "generated_at": "2026-05-15T00:00:00Z",
+  "source_graph": "graphify-out/graph.json",
+  "summary": {
+    "total_handlers": 71,
+    "p0": 8,
+    "p1": 7,
+    "p2": 4,
+    "deferred": 3,
+    "used_fallback": false
+  },
+  "flows": [
+    {
+      "id": "authenticate",
+      "priority": "P0",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 3,
+        "centrality": 0
+      },
+      "handler_node": "controller_authenticationcontroller_authenticationcontroller",
+      "http": {"method": "POST", "path": "/api/authenticate"},
+      "covers": ["GET /api/authenticate/jwt/{jwt}"],
+      "rationale": "HARD INCLUDE: login path. Publicly accessible (permitAll). Touches auth, JWT, password, and credential nodes (JwtUtilImpl rank-7 god node, UserDetailsImpl rank-8 god node). blast_radius=2 because JwtUtilImpl (top-20 god node, 10 edges) is a critical dependency and all downstream authenticated endpoints depend on tokens issued here.",
+      "confidence": "high"
+    },
+    {
+      "id": "user-register",
+      "priority": "P0",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_usercontroller_usercontroller",
+      "http": {"method": "POST", "path": "/api/users"},
+      "covers": ["POST /api/credentials (CredentialController.save — same user-service DB write target)"],
+      "rationale": "HARD INCLUDE: signup path. Creates the User entity whose reachable subgraph includes CredentialServiceImpl (top-20 god node, rank 13) and UserServiceImpl (top-20 god node, rank 12) — data_criticality=3 via credential/auth/pii keywords. UserController is top-100 centrality. UserServiceImpl blast_radius=2 (rank-12, top-20 god node).",
+      "confidence": "high"
+    },
+    {
+      "id": "order-create",
+      "priority": "P0",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_ordercontroller_ordercontroller",
+      "http": {"method": "POST", "path": "/api/orders"},
+      "covers": [
+        "POST /api/carts (CartController.save — order-service shares DB; CartServiceImpl rank-18 top-20)",
+        "GET /api/orders", "GET /api/orders/{orderId}",
+        "PUT /api/orders", "PUT /api/orders/{orderId}"
+      ],
+      "rationale": "HARD INCLUDE: checkout/purchase happy path. 'order' keyword triggers data_criticality=3. OrderServiceImpl rank-19 and CartServiceImpl rank-18 both in top-20 god nodes; they share the order-service DB, giving blast_radius=2. OrderController is top-100 centrality.",
+      "confidence": "high"
+    },
+    {
+      "id": "payment-create",
+      "priority": "P0",
+      "score": 10,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_paymentcontroller_paymentcontroller",
+      "http": {"method": "POST", "path": "/api/payments"},
+      "covers": ["GET /api/payments", "GET /api/payments/{paymentId}", "PUT /api/payments"],
+      "rationale": "HARD INCLUDE: payment happy path. 'payment' keyword triggers data_criticality=3. PaymentServiceImpl rank-39 top-100; payment-service has its own microservice DB (blast_radius=1 — isolated from other service DBs, but carries ext: dependency on OrderDto). PaymentController rank-59 top-100.",
+      "confidence": "high"
+    },
+    {
+      "id": "shipping-create",
+      "priority": "P0",
+      "score": 9,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_orderitemcontroller_orderitemcontroller",
+      "http": {"method": "POST", "path": "/api/shippings"},
+      "covers": [
+        "GET /api/shippings", "GET /api/shippings/{orderId}/{productId}",
+        "PUT /api/shippings", "DELETE /api/shippings/{orderId}/{productId}"
+      ],
+      "rationale": "P0 by data_criticality=3: OrderItemDto carries OrderDto reference — 'order' keyword in reachable subgraph. OrderItemController (rank-47 top-100) proxies to shipping-service which tracks order item fulfillment. Separate microservice DB (blast_radius=1).",
+      "confidence": "high"
+    },
+    {
+      "id": "address-create",
+      "priority": "P0",
+      "score": 9,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_addresscontroller_addresscontroller",
+      "http": {"method": "POST", "path": "/api/address"},
+      "covers": [
+        "GET /api/address", "GET /api/address/{addressId}",
+        "PUT /api/address", "PUT /api/address/{addressId}"
+      ],
+      "rationale": "P0 by data_criticality=3: AddressDto contains user PII (physical address). 'pii' keyword in rubric. AddressServiceImpl rank-37 top-100; AddressController rank-55 top-100. Writes to user-service address table (isolated from other resource DBs, blast_radius=1).",
+      "confidence": "high"
+    },
+    {
+      "id": "verification-token-create",
+      "priority": "P0",
+      "score": 9,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_verificationtokencontroller_verificationtokencontroller",
+      "http": {"method": "POST", "path": "/api/verificationTokens"},
+      "covers": [
+        "GET /api/verificationTokens", "GET /api/verificationTokens/{verificationTokenId}",
+        "PUT /api/verificationTokens"
+      ],
+      "rationale": "P0 by data_criticality=3: 'token' keyword in VerificationToken name; this flow manages auth verification tokens post-signup. VerificationTokenServiceImpl rank-38 top-100; controller rank-56 top-100. Part of the account-activation/email-verify flow.",
+      "confidence": "high"
+    },
+    {
+      "id": "health-check",
+      "priority": "P0",
+      "score": 4,
+      "axes": {
+        "business_impact": 1,
+        "blast_radius": 0,
+        "data_criticality": 0,
+        "user_facing": 3,
+        "centrality": 0
+      },
+      "handler_node": "app_apigatewayapplication_apigatewayapplication",
+      "http": {"method": "GET", "path": "/actuator/health"},
+      "covers": ["/actuator/info", "/actuator/health/**"],
+      "rationale": "HARD INCLUDE: publicly exposed /health endpoint (SecurityConfig permits /actuator/health/** to all). Spring Boot Actuator; no custom handler node — referenced via ApiGatewayApplication. Low score but non-negotiable canary flow.",
+      "confidence": "high"
+    },
+    {
+      "id": "products-list",
+      "priority": "P1",
+      "score": 7,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 0,
+        "user_facing": 3,
+        "centrality": 1
+      },
+      "handler_node": "controller_productcontroller_productcontroller",
+      "http": {"method": "GET", "path": "/api/products"},
+      "covers": ["GET /api/products/{productId}"],
+      "rationale": "Publicly accessible product catalog (SecurityConfig permits /api/products/**). ProductServiceImpl rank-29 top-100; ProductController rank-62 top-100. Read-only, no sensitive keywords → data_criticality=0. Core user-visible browsing flow.",
+      "confidence": "high"
+    },
+    {
+      "id": "categories-list",
+      "priority": "P1",
+      "score": 7,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 0,
+        "user_facing": 3,
+        "centrality": 1
+      },
+      "handler_node": "controller_categorycontroller_categorycontroller",
+      "http": {"method": "GET", "path": "/api/categories"},
+      "covers": ["GET /api/categories/{categoryId}"],
+      "rationale": "Publicly accessible category navigation (SecurityConfig permits /api/categories/**). CategoryServiceImpl rank-30 top-100; CategoryController rank-61 top-100. Read-only, no sensitive keywords. Product browsing depends on this flow.",
+      "confidence": "high"
+    },
+    {
+      "id": "favourite-add",
+      "priority": "P1",
+      "score": 7,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 1,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_favouritecontroller_favouritecontroller",
+      "http": {"method": "POST", "path": "/api/favourites"},
+      "covers": [
+        "GET /api/favourites", "GET /api/favourites/{userId}/{productId}/{likeDate}",
+        "PUT /api/favourites", "DELETE /api/favourites/{userId}/{productId}/{likeDate}"
+      ],
+      "rationale": "User wishlist/favourites feature. FavouriteServiceImpl rank-27 top-100; FavouriteController rank-49 top-100. WRITE on Favourite entity (data_criticality=1); no critical data-domain keywords in Favourite name. Requires ROLE_USER auth.",
+      "confidence": "high"
+    },
+    {
+      "id": "user-profile-get",
+      "priority": "P1",
+      "score": 10,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_usercontroller_usercontroller",
+      "http": {"method": "GET", "path": "/api/users/{userId}"},
+      "covers": ["GET /api/users", "GET /api/users/username/{username}"],
+      "rationale": "Would be P0 (score 10, data_criticality=3 via credential/pii subgraph; UserServiceImpl top-20 god node) but downgraded to P1 due to P0 budget cap (8 slots filled). UserController rank-23 top-100. The write flow is covered by user-register (P0); this covers the read/profile view path.",
+      "confidence": "high"
+    },
+    {
+      "id": "order-list",
+      "priority": "P1",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_ordercontroller_ordercontroller",
+      "http": {"method": "GET", "path": "/api/orders"},
+      "covers": ["GET /api/orders/{orderId}"],
+      "rationale": "Would be P0 (score 11, 'order' data_criticality=3) but downgraded to P1 by budget cap — write path covered by order-create (P0). OrderController rank-52 top-100; OrderServiceImpl rank-19 top-20. Covers order-history read flow distinct from order creation.",
+      "confidence": "high"
+    },
+    {
+      "id": "payment-status",
+      "priority": "P1",
+      "score": 10,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_paymentcontroller_paymentcontroller",
+      "http": {"method": "GET", "path": "/api/payments/{paymentId}"},
+      "covers": ["GET /api/payments"],
+      "rationale": "Would be P0 (score 10, 'payment' data_criticality=3) but budget cap applies — write path covered by payment-create (P0). PaymentController rank-59 top-100. Important read-path for post-purchase payment status verification.",
+      "confidence": "high"
+    },
+    {
+      "id": "product-get",
+      "priority": "P2",
+      "score": 7,
+      "axes": {
+        "business_impact": 2,
+        "blast_radius": 1,
+        "data_criticality": 0,
+        "user_facing": 3,
+        "centrality": 1
+      },
+      "handler_node": "controller_productcontroller_productcontroller",
+      "http": {"method": "GET", "path": "/api/products/{productId}"},
+      "covers": [],
+      "rationale": "Covered by products-list (P1) but listed separately for individual product detail view. Public endpoint. Score 7 but classified P2 for visibility since it's already covered by the list flow.",
+      "confidence": "medium"
+    },
+    {
+      "id": "cart-create",
+      "priority": "P2",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_cartcontroller_cartcontroller",
+      "http": {"method": "POST", "path": "/api/carts"},
+      "covers": ["GET /api/carts", "GET /api/carts/{cartId}", "PUT /api/carts", "PUT /api/carts/{cartId}"],
+      "rationale": "Covered by order-create (P0) which lists this in covers — same order-service DB (CartServiceImpl rank-18 top-20). Score 11 qualifies for P0 but suppressed by de-duplication rule: deepest shared business node is order-service DB shared with OrderController. Listed P2 for visibility.",
+      "confidence": "high"
+    },
+    {
+      "id": "credential-create",
+      "priority": "P2",
+      "score": 11,
+      "axes": {
+        "business_impact": 3,
+        "blast_radius": 2,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 1
+      },
+      "handler_node": "controller_credentialcontroller_credentialcontroller",
+      "http": {"method": "POST", "path": "/api/credentials"},
+      "covers": [
+        "GET /api/credentials", "GET /api/credentials/{credentialId}",
+        "GET /api/credentials/username/{username}",
+        "PUT /api/credentials", "PUT /api/credentials/{credentialId}"
+      ],
+      "rationale": "Covered by user-register (P0) — same user-service DB write target. CredentialServiceImpl rank-13 top-20; CredentialController rank-22 top-100. Score 11 qualifies for P0 but de-dup groups it with user-register (deepest shared business node: user-service/credentialRepository). Listed P2 for visibility.",
+      "confidence": "high"
+    },
+    {
+      "id": "address-delete",
+      "priority": "P2",
+      "score": 5,
+      "axes": {
+        "business_impact": 1,
+        "blast_radius": 1,
+        "data_criticality": 3,
+        "user_facing": 2,
+        "centrality": 0
+      },
+      "handler_node": "controller_addresscontroller_addresscontroller",
+      "http": {"method": "DELETE", "path": "/api/address/{addressId}"},
+      "covers": [],
+      "rationale": "Destructive operation on PII address data. data_criticality=3 (pii) but business_impact=1 (maintenance). Has idempotent sibling (address-create P0) so not hard-excluded. Score 5 → P2.",
+      "confidence": "medium"
+    }
+  ],
+  "deferred": [
+    {
+      "id": "orders-delete",
+      "would_be_priority": "P1",
+      "score": 8,
+      "reason": "Destructive-only for this test run; write/create covered by order-create (P0). DELETE /api/orders/{orderId} has no non-destructive paired test strategy defined yet."
+    },
+    {
+      "id": "user-delete",
+      "would_be_priority": "P1",
+      "score": 9,
+      "reason": "DELETE /api/users/{userId} is destructive; user creation covered by user-register (P0). Requires careful test isolation — deferred until safe teardown mechanism is confirmed."
+    },
+    {
+      "id": "category-create",
+      "would_be_priority": "P1",
+      "score": 7,
+      "reason": "POST /api/categories (CategoryController.save) — public endpoint with no auth guard. While /api/categories/** is permitAll in SecurityConfig (allowing unauthenticated writes — potential security concern), test coverage deferred as category management is typically admin-scoped. Recommend security audit on this endpoint."
+    }
+  ],
+  "report": "## Flow Classification Report — ecommerce-microservice-backend-app\n\n### Architecture Summary\nSpring Boot microservices with a **proxy-client** acting as the public API gateway (JWT-based auth via `JwtRequestFilter`). Services: user-service, order-service, payment-service, product-service, favourite-service, shipping-service, api-gateway, service-discovery.\n\nSecurity boundary (from `SecurityConfig`):\n- **Public (no auth):** `/api/authenticate/**`, `/api/categories/**`, `/api/products/**`, `/actuator/health/**`\n- **ROLE_USER or ROLE_ADMIN:** all other `/api/**` routes\n- **ROLE_ADMIN only:** `/actuator/**` (except health/info)\n\n### God Nodes (GRAPH_REPORT.md top-5)\n`MavenWrapperDownloader` (13 edges), `Playing With e-Commerce-boot Project` (11), `ApiExceptionHandler` (10), `JwtUtilImpl` (10), `UserDetailsImpl` (9). No HTTP handler node appears in top-5; `JwtUtilImpl` (rank 7) and `UserServiceImpl`/`CredentialServiceImpl` (ranks 12-13) are the most-connected auth-related infrastructure.\n\n### Scoring Notes\n- **data_criticality=3** applies broadly: any flow whose reachable subgraph touches Order, Payment, Credential, Address (PII), or VerificationToken entities scores 3 due to the rubric's keyword list (order, payment, credential, token, pii). This elevated 6 out of 8 P0 flows on data_criticality alone.\n- **P0 budget cap hit at 8:** `GET /api/users/{userId}` (score 10), `GET /api/orders` (score 11), and `GET /api/payments/{paymentId}` (score 10) all qualify as P0 by score/data_criticality but are downgraded to P1 since P0 slots are exhausted by HARD INCLUDEs and higher-priority write flows.\n- **De-duplication applied:** `POST /api/carts` (score 11) merged into `order-create` covers (same order-service DB); `POST /api/credentials` (score 11) merged into `user-register` covers (same user-service DB).\n- **No sparsity fallback used:** 71 proxy-client HTTP handler methods identified; graph has sufficient structure.\n- **Security flag:** `POST /api/categories` is publicly accessible (no auth required per SecurityConfig) — potential unauthenticated write vulnerability. Deferred with note for security audit.\n- **Confidence:** All proxy-client flows rated high confidence; handler nodes verified against source files. Health-check rated high (HARD INCLUDE, standard Spring Boot Actuator)."
+}
