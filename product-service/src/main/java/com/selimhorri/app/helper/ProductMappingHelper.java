@@ -15,6 +15,7 @@ public interface ProductMappingHelper {
 				.sku(product.getSku())
 				.priceUnit(product.getPriceUnit())
 				.quantity(product.getQuantity())
+				.discountPercent(product.getDiscountPercent())
 				.categoryDto(
 						CategoryDto.builder()
 							.categoryId(product.getCategory().getCategoryId())
@@ -32,6 +33,7 @@ public interface ProductMappingHelper {
 				.sku(productDto.getSku())
 				.priceUnit(productDto.getPriceUnit())
 				.quantity(productDto.getQuantity())
+				.discountPercent(productDto.getDiscountPercent())
 				.category(
 						Category.builder()
 							.categoryId(productDto.getCategoryDto().getCategoryId())

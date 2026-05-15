@@ -48,6 +48,9 @@ public final class Product extends AbstractMappedEntity implements Serializable 
 	
 	@Column(name = "quantity")
 	private Integer quantity;
+
+	@Column(name = "discount_percent", columnDefinition = "decimal default 0.0")
+	private Double discountPercent;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "category_id")

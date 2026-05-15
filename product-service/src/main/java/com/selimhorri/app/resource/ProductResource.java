@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.selimhorri.app.dto.ProductDto;
@@ -35,6 +36,19 @@ public class ProductResource {
 		return ResponseEntity.ok(new DtoCollectionResponse<>(this.productService.findAll()));
 	}
 	
+	@GetMapping("/search")
+	public ResponseEntity<DtoCollectionResponse<ProductDto>> searchByTitle(
+			@RequestParam("title") final String title) {
+		log.info("*** ProductDto List, resource; search products by title *");
+		return ResponseEntity.ok(new DtoCollectionResponse<>(this.productService.searchByTitle(title)));
+	}
+
+	@GetMapping("/discounted")
+	public ResponseEntity<DtoCollectionResponse<ProductDto>> findDiscounted() {
+		log.info("*** ProductDto List, resource; fetch all discounted products *");
+		return ResponseEntity.ok(new DtoCollectionResponse<>(this.productService.findDiscounted()));
+	}
+
 	@GetMapping("/{productId}")
 	public ResponseEntity<ProductDto> findById(
 			@PathVariable("productId") 

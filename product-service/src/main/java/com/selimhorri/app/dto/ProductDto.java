@@ -24,6 +24,7 @@ public class ProductDto implements Serializable {
 	private String sku;
 	private Double priceUnit;
 	private Integer quantity;
+	private Double discountPercent;
 	
 	@JsonProperty("category")
 	@JsonInclude(Include.NON_NULL)
